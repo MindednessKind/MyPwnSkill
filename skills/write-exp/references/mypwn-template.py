@@ -108,6 +108,24 @@ def bind():
 #     sl(itb(idx))
 
 
+# ================= 堆辅助 =================
+# GLIBC_VERSION = "2.35"
+#
+# def slink(ptr, pos):
+#     return safe_linking_encrypt(ptr, pos, glibc_version=GLIBC_VERSION)
+#
+# def sunlink(value, pos):
+#     return safe_linking_decrypt(value, pos, glibc_version=GLIBC_VERSION)
+#
+# def patch_tcache(raw, chunk_size, entry, count=1):
+#     return edit_tcache_perthread(
+#         raw,
+#         chunk_size=chunk_size,
+#         count=count,
+#         entry=entry,
+#         glibc_version=GLIBC_VERSION,
+#     )
+
 def exploit():
     global io
 

@@ -26,6 +26,15 @@ class SkillContractTests(unittest.TestCase):
         self.assertIn("Do not introduce a fresh `start()` helper", text)
         self.assertIn("io = iopen(...)", text)
 
+    def test_heap_helper_guidance_uses_mypwn_helpers(self):
+        skill_text = _read(WRITE_EXP / "SKILL.md")
+        template_text = _read(WRITE_EXP / "references/mypwn-template.py")
+
+        self.assertIn("safe_linking_encrypt", skill_text)
+        self.assertIn("TcachePerThreadStruct", skill_text)
+        self.assertIn("edit_tcache_perthread", template_text)
+        self.assertIn("GLIBC_VERSION", template_text)
+
     def test_unknown_libc_guidance_does_not_assign_libc_address_without_an_elf(self):
         text = _read(WRITE_EXP / "SKILL.md")
 

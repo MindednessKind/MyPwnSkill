@@ -31,6 +31,7 @@ Use this skill when the exploit should read like the user's normal hand-written 
 - If a custom local launcher is needed, such as `ld-linux`, a wrapper script, or unusual argv, start it manually and bind thin wrappers with a short local `bind()` helper that also exposes `shell = lambda: io.interactive()`.
 - For shell-based remote targets, prefer `prepare_shell(...)`, `upload(...)`, `execute(...)`, `execute_and_wait(...)`, and `upload_and_run(...)` from `Mypwn` before writing an ad-hoc base64 uploader.
 - Use `Tool.get_arch_packer(...)` and `Tool.get_byte_packer()` instead of ad-hoc pack/unpack helpers. For pure-remote boards, set `PACK_ARCH` explicitly before resolving packers.
+- For heap/tcache work, prefer `Mypwn` helpers over ad-hoc formulas: `safe_linking_encrypt`, `safe_linking_decrypt`, `safe_linking_demangle`, `tcache_idx`, `tcache_layout`, `TcachePerThreadStruct`, and `edit_tcache_perthread`. Pass `glibc_version` when layout or safe-linking behavior matters, and override `ptr_size`, `bins`, or `count_size` only for custom/backported allocators.
 - Use `get_log_function()` for logging. Match the user's local naming, commonly `logHex, lg, info, debug`.
 - Keep `dbg()` as `GDB(io)` plus `pause()`, or `GDB(io, scripts=src)` when the board already carries a local GDB script string.
 - End with `shell()` only when the exploit is meant to stay interactive. If the exploit prints the flag and exits by design, stop there. If a manual launcher branch does not bind `shell`, call `io.interactive()` directly instead of relying on a stub.
@@ -68,6 +69,7 @@ Keep prompts and payloads in `bytes`. Use `itb()` for numeric menu arguments whe
 - Prefer short comments only around the non-obvious transitions.
 - Avoid over-abstracting. The exploit should look like it was written for this target, not prepared as a reusable library.
 - Keep retries, CLI parsing, or extra configurability only when the exploit genuinely needs them.
+- When editing `tcache_perthread_struct`, build from leaked/current bytes with `TcachePerThreadStruct.from_bytes(...)` or patch directly with `edit_tcache_perthread(...)`; select bins by `idx`, `chunk_size`, or `request_size`, and remember glibc 2.42+ uses `num_slots` with 76 bins.
 - For shell targets, only keep custom upload code when `Mypwn.uploader` genuinely cannot handle the environment.
 - Do not force `upload_and_run(...)` when the target's post-exec behavior is unusual. If output collection is target-specific, use `upload(...)` for transport and then drive execution and reads manually.
 
@@ -99,6 +101,23 @@ libc_base = puts_addr - db.symbols["puts"]
 system_addr = libc_base + db.dump("system")
 binsh_addr = libc_base + db.dump("str_bin_sh")
 ```
+
+## Heap Helper Notes
+
+Use these helpers when they match the primitive; do not reimplement them inline unless the installed `Mypwn` is older.
+
+```python
+GLIBC_VERSION = "2.35"
+pos = chunk_addr  # address of the stored next/fd field
+fd = safe_linking_encrypt(target_addr, pos, glibc_version=GLIBC_VERSION)
+target = safe_linking_decrypt(fd, pos, glibc_version=GLIBC_VERSION)
+
+tc = TcachePerThreadStruct.from_bytes(raw_tcache, glibc_version=GLIBC_VERSION)
+tc.set_bin(chunk_size=0x40, count=1, entry=fake_chunk)
+payload = tc.pack(trim=True)
+```
+
+`safe_linking_demangle(...)` is only for leaks shaped like `x ^ (x >> 12)` when the storage address is not known; exact pointer recovery should use `safe_linking_decrypt(value, pos, ...)`.
 
 ## Launcher and Remote Notes
 
