@@ -32,7 +32,9 @@ class SkillContractTests(unittest.TestCase):
 
         self.assertIn("safe_linking_encrypt", skill_text)
         self.assertIn("TcachePerThreadStruct", skill_text)
-        self.assertIn("edit_tcache_perthread", template_text)
+        self.assertIn("write_tcache({0x18: target})", skill_text)
+        self.assertIn("write_tcache", template_text)
+        self.assertIn("filler", template_text)
         self.assertIn("GLIBC_VERSION", template_text)
 
     def test_unknown_libc_guidance_does_not_assign_libc_address_without_an_elf(self):

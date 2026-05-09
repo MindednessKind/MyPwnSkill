@@ -117,13 +117,13 @@ def bind():
 # def sunlink(value, pos):
 #     return safe_linking_decrypt(value, pos, glibc_version=GLIBC_VERSION)
 #
-# def patch_tcache(raw, chunk_size, entry, count=1):
-#     return edit_tcache_perthread(
-#         raw,
-#         chunk_size=chunk_size,
-#         count=count,
-#         entry=entry,
+# def patch_tcache(raw, size, entry, count=None, filler=b"\x00"):
+#     return write_tcache(
+#         {size: entry},
+#         data=raw,
 #         glibc_version=GLIBC_VERSION,
+#         count=count,
+#         filler=filler,
 #     )
 
 def exploit():
